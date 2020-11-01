@@ -270,9 +270,9 @@ export default [
     code: 'Slash',
   },
   {
-    small: 'Shift',
+    small: 'en',
     shift: null,
-    code: 'ShiftRight',
+    code: 'SwitchLang',
   },
   {
     small: 'Ctrl',
@@ -295,9 +295,9 @@ export default [
     code: 'AltRight',
   },
   {
-    small: 'Ctrl',
+    small: 'Mute',
     shift: null,
-    code: 'ControlRight',
+    code: 'Mute',
   },
   {
     small: '&larr;',
@@ -320,8 +320,8 @@ export default [
     code: 'ArrowRight',
   },
   {
-    small: 'Win',
+    small: 'Hide',
     shift: null,
-    code: 'Win',
+    code: 'Hide',
   },
 ];

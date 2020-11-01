@@ -9,8 +9,8 @@ import Key from './Key.js';
 const main = create('main', '',
     [
         create('h1', 'title', 'RSS Virtual Keyboard'),
-        create('h3', 'subtitle', 'Instruction!!!'),
-        create('p', 'hint', 'Use так-то так-то')
+        create('h3', 'subtitle', 'Инструкция'),
+        create('p', 'hint', 'Уважаемые проверяющие дайте пожалуйста еще время, чтобы постараться добавить остальной функционал.')
     ]
 );
 
@@ -22,6 +22,7 @@ export default class Keyboard {
     }
 
     init(langCode) {
+
         this.keyBase = language[langCode];
         this.output = create('textarea', 'output', null, main,
             ['placeholder', 'Start type something...'],
@@ -50,6 +51,8 @@ export default class Keyboard {
             });
         });
 
+        this.output.addEventListener('click', this.openEvent);
+
         document.addEventListener('keydown', this.handleEvent);
         document.addEventListener('keyup', this.handleEvent);
         this.container.onmousedown = this.preHandleEvent;
@@ -66,9 +69,23 @@ export default class Keyboard {
     }
 
     resetButtonState = ({ target: { dataset: { code } } }) => {
-        const keyObj = this.keyButtons.find((key) => key.code === code);
-        keyObj.div.classList.remove('active');
-        keyObj.div.removeEventListener('mouseleave', this.resetButtonState);
+        if (code.match('Shift')) {
+            this.shiftKey = false;
+            this.switchUpperCase(false);
+            this.keysPressed[code].div.classList.remove('active');
+        }
+
+        if (code.match(/Control/)) this.ctrKey = false;
+        if (code.match(/Alt/)) this.altKey = false;
+        this.resetPressedButtons(code);
+        this.output.focus();
+    }
+
+    resetPressedButtons = (targetCode) => {
+        if (!this.keysPressed[targetCode]) return;
+        if (!this.isCaps) this.keysPressed[targetCode].div.classList.remove('active');
+        this.keysPressed[targetCode].div.removeEventListener('mouseleave', this.resetButtonState);
+        delete this.keysPressed[targetCode];
     }
 
     handleEvent = (e) => {
@@ -77,6 +94,11 @@ export default class Keyboard {
         const keyObj = this.keyButtons.find((key) => key.code === code);
         if(!keyObj) return;
         this.output.focus();
+
+        const audioUniq = document.querySelector('.audioUniq');
+        const audioMain = document.querySelector('.audio');
+        const audioRus = document.querySelector('.audioRus');
+        const audioMute = document.querySelector('.audioWrapper');
 
         if(type.match(/keydown|mousedown/)) {
             if (type.match(/key/)) e.preventDefault();
@@ -96,11 +118,39 @@ export default class Keyboard {
                 keyObj.div.classList.remove('active');
             }
 
+            if(code.match(/Control|Mute|arr|Shift|Alt|Tab|Back|Del|Enter|Hide|Switch|Caps/)) {
+                audioUniq.play();
+            }
+
+            if (keyObj.small.match(/[а-яА-ЯёЁ]/g)) {
+                audioRus.play();
+            } else {
+                audioMain.play();
+            }
+
+            // if(code.match(/Mute/)) this.muteKey = true;
+
             if(code.match(/Control/)) this.ctrlKey = true;
             if(code.match(/Alt/)) this.altKey = true;
 
+            if(code.match(/Switch/)) this.switchKey = true;
+            if(code.match(/Hide/)) this.winKey = true;
+
             if(code.match(/Control/) && this.altKey) this.switchLanguage();
             if(code.match(/Alt/) && this.ctrlKey) this.switchLanguage();
+
+            if(code.match(/Switch/) && this.switchKey) this.switchLanguage();
+            if(code.match(/Hide/)) {
+                this.container.classList.add('close');
+            };
+            if(code.match(/Mute/) && !this.muteKey) {
+                audioMain.muted = true;
+                audioMute.classList.add('test');
+            }
+
+            if (this.muteKey) {
+                audioMain.muted = false;
+            }
 
             if(!this.isCaps) {
                 this.printToOutput(keyObj, this.shiftKey ? keyObj.shift : keyObj.small);
@@ -113,15 +163,21 @@ export default class Keyboard {
             }
             this.keysPressed[keyObj.code] = keyObj;
         } else if (type.match(/keyup|mouseup/)) {
+            this.resetPressedButtons(code);
             if(code.match(/Shift/)) {
                 this.shiftKey = false;
                 this.switchUpperCase(false);
             }
             if(code.match(/Control/)) this.ctrlKey = false;
             if(code.match(/Alt/)) this.altKey = false;
+            if(code.match(/Switch/)) this.switchKey = false;
 
             if (!code.match(/Caps/)) keyObj.div.classList.remove('active');
         }
+    }
+
+    openEvent = (e) => {
+        this.container.classList.remove('close');
     }
 
     switchLanguage = () => {
@@ -131,7 +187,7 @@ export default class Keyboard {
             : language[langAbbr[langIdx -= langIdx]];
 
         this.container.dataset.language = langAbbr[langIdx];
-        // storage.set('kbLang', langAbbr[langIdx]);
+        storage.set('kbLang', langAbbr[langIdx]);
 
         this.keyButtons.forEach((button) => {
             const keyObj = this.keyBase.find((key) => key.code === button.code);
@@ -211,7 +267,7 @@ export default class Keyboard {
             },
               ArrowDown: () => {
                 const positionFromLeft = this.output.value.slice(cursorPos).match(/^.*(\n).*(?!\1)/) || [[1]];
-                cursorPos += positionFromLeft[0].length;
+                cursorPos += positionFromLeft[0].length + 1;
             },
             Enter: () => {
                 this.output.value = `${left}\n${right}`;
@@ -239,3 +295,7 @@ export default class Keyboard {
         this.output.setSelectionRange(cursorPos, cursorPos);
     }
 }
+
+// const openButton = document.querySelector('.openBoard');
+
+// openButton.addEventListener('click', this.openEvent);

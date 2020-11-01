@@ -92,7 +92,7 @@ main {
   width: 100px;
 }
 
-[data-code="ShiftRight"] {
+[data-code="SwitchLang"] {
   width: 120px;
 }
 
@@ -108,7 +108,7 @@ main {
   width: 76px;
 }
 
-[data-code="ControlRight"] {
+[data-code="Mute"] {
   width: 60px;
 }
 
@@ -226,4 +226,12 @@ textarea.output {
     -ms-transform: scale(2.5);
     -o-transform: scale(2.5);
 }
+}
+
+.close {
+    display: none;
+}
+
+.on {
+    display: none;
 }
