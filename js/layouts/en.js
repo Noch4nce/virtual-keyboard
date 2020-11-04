@@ -290,9 +290,9 @@ export default [
     code: 'Space',
   },
   {
-    small: 'Alt',
+    small: 'Voice',
     shift: null,
-    code: 'AltRight',
+    code: 'Voice',
   },
   {
     small: 'Mute',

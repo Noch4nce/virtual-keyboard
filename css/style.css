@@ -121,7 +121,7 @@ main {
 }
 
 [data-code="AltLeft"],
-[data-code="AltRight"] {
+[data-code="Voice"] {
   width: 76px;
 }
 

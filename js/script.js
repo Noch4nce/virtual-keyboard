@@ -6,7 +6,7 @@ const rowsOrder = [
     ['Tab', 'KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backspace'],
     ['CapsLock', 'KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyG', 'KeyH', 'KeyJ', 'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Backslash', 'Enter'],
     ['ShiftLeft', 'IntlBackslash', 'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'ArrowUp', 'SwitchLang'],
-    ['ControlLeft', 'Hide', 'AltLeft', 'Space', 'AltRight', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'Mute'],
+    ['ControlLeft', 'Hide', 'AltLeft', 'Space', 'Voice', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'Mute'],
 ];
 
 const lang = get('kbLang', '"ru"');

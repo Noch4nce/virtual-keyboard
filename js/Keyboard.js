@@ -8,9 +8,12 @@ import Key from './Key.js';
 
 const main = create('main', '',
     [
-        create('h1', 'title', 'RSS Virtual Keyboard'),
+        create('h1', 'title', 'Virtual Keyboard'),
         create('h3', 'subtitle', 'Инструкция'),
-        create('p', 'hint', 'Уважаемые проверяющие дайте пожалуйста еще время, чтобы постараться добавить остальной функционал.')
+        create('p', 'hint', 'Клавиша "Hide" скрывает клавиатуру.'),
+        create('p', 'hint', 'Клавиша "Mute" заглушает кнопки.'),
+        create('p', 'hint', 'Клавиша "Voice" голосовой ввод.'),
+        create('p', 'hint', 'Смена языка ctrl+alt или кнопкой en/ru')
     ]
 );
 
@@ -19,6 +22,9 @@ export default class Keyboard {
         this.rowsOrder = rowsOrder;
         this.keysPressed = {};
         this.isCaps = false;
+        this.muteKey = false;
+        this.voiceKey = false;
+        this.shiftKey = false;
     }
 
     init(langCode) {
@@ -83,7 +89,7 @@ export default class Keyboard {
 
     resetPressedButtons = (targetCode) => {
         if (!this.keysPressed[targetCode]) return;
-        if (!this.isCaps) this.keysPressed[targetCode].div.classList.remove('active');
+        if (!this.isCaps && !this.muteKey && !this.voiceKey) this.keysPressed[targetCode].div.classList.remove('active');
         this.keysPressed[targetCode].div.removeEventListener('mouseleave', this.resetButtonState);
         delete this.keysPressed[targetCode];
     }
@@ -98,7 +104,6 @@ export default class Keyboard {
         const audioUniq = document.querySelector('.audioUniq');
         const audioMain = document.querySelector('.audio');
         const audioRus = document.querySelector('.audioRus');
-        const audioMute = document.querySelector('.audioWrapper');
 
         if(type.match(/keydown|mousedown/)) {
             if (type.match(/key/)) e.preventDefault();
@@ -109,6 +114,7 @@ export default class Keyboard {
 
             keyObj.div.classList.add('active');
 
+
             if (code.match(/Caps/) && !this.isCaps) {
                 this.isCaps = true;
                 this.switchUpperCase(true);
@@ -118,17 +124,12 @@ export default class Keyboard {
                 keyObj.div.classList.remove('active');
             }
 
-            if(code.match(/Control|Mute|arr|Shift|Alt|Tab|Back|Del|Enter|Hide|Switch|Caps/)) {
-                audioUniq.play();
+            if (code.match(/Mute/) && !this.muteKey) {
+                this.muteKey = true;
+            } else if (code.match(/Mute/) && this.muteKey) {
+                this.muteKey = false;
+                keyObj.div.classList.remove('active');
             }
-
-            if (keyObj.small.match(/[а-яА-ЯёЁ]/g)) {
-                audioRus.play();
-            } else {
-                audioMain.play();
-            }
-
-            // if(code.match(/Mute/)) this.muteKey = true;
 
             if(code.match(/Control/)) this.ctrlKey = true;
             if(code.match(/Alt/)) this.altKey = true;
@@ -143,13 +144,14 @@ export default class Keyboard {
             if(code.match(/Hide/)) {
                 this.container.classList.add('close');
             };
-            if(code.match(/Mute/) && !this.muteKey) {
-                audioMain.muted = true;
-                audioMute.classList.add('test');
-            }
 
-            if (this.muteKey) {
-                audioMain.muted = false;
+            if(code.match(/Voice/) && !this.voiceKey) {
+                this.voiceKey = true;
+                this.record();
+            } else if (code.match(/Voice/) && this.voiceKey) {
+                this.recognition.stop();
+                this.recognition = null;
+                this.voiceKey = false;
             }
 
             if(!this.isCaps) {
@@ -161,6 +163,27 @@ export default class Keyboard {
                     this.printToOutput(keyObj, !keyObj.sub.innerHTML ? keyObj.shift : keyObj.small);
                 }
             }
+
+            if(code.match(/Control|Mute|arr|Shift|Alt|Tab|Back|Del|Enter|Hide|Switch|Caps/)) {
+                if (!this.muteKey) {
+                    audioUniq.play();
+                    audioUniq.currentTime = 0;
+                }
+            }
+
+            if (keyObj.small.match(/[а-яА-ЯёЁ]/g)) {
+                if(!this.muteKey) {
+                    audioRus.play();
+                    audioRus.currentTime = 0;
+                }
+            } else {
+                if(!this.muteKey) {
+                    this.muteKey = false;
+                    audioMain.play();
+                    audioMain.currentTime = 0;
+                }
+            }
+
             this.keysPressed[keyObj.code] = keyObj;
         } else if (type.match(/keyup|mouseup/)) {
             this.resetPressedButtons(code);
@@ -171,8 +194,9 @@ export default class Keyboard {
             if(code.match(/Control/)) this.ctrlKey = false;
             if(code.match(/Alt/)) this.altKey = false;
             if(code.match(/Switch/)) this.switchKey = false;
-
-            if (!code.match(/Caps/)) keyObj.div.classList.remove('active');
+            if (!code.match(/Caps|Mute|Voice/)) {
+                keyObj.div.classList.remove('active');
+            }
         }
     }
 
@@ -294,8 +318,27 @@ export default class Keyboard {
         }
         this.output.setSelectionRange(cursorPos, cursorPos);
     }
+
+    record () {
+        window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.recognition = new SpeechRecognition();
+        this.recognition.interimResults = true;
+        this.recognition.lang = this.container.dataset.language;
+
+        this.recognition.addEventListener('result', e => {
+            const transcript = Array.from(e.results)
+              .map(result => result[0])
+              .map(result => result.transcript)
+              .join('');
+
+              if (e.results[0].isFinal) {
+                this.output.value = transcript;
+              }
+        });
+
+        this.recognition.addEventListener('end', () => {
+            if (this.voiceKey) this.recognition.start();
+        });
+        this.recognition.start();
+    }
 }
-
-// const openButton = document.querySelector('.openBoard');
-
-// openButton.addEventListener('click', this.openEvent);
