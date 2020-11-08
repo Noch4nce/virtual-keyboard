@@ -15,6 +15,7 @@ body {
 main {
   width: 1020px;
   margin: auto;
+  display: grid;
 }
 
 .keyboard {
